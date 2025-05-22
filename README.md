@@ -22,6 +22,7 @@ cd assignment-submission-viz
 python3 -m http.server
 ```
 Then open your browser to: [http://localhost:8000](http://localhost:8000)
+
 3. Open dashboard.html in your browser to view the visualizations.
 
 ---
