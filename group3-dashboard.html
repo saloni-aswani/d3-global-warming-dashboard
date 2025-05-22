@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Global Warming Dashboard</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    .column {
+      float: left;
+      width: 50%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      height: 600px;
+    }
+
+    .row:after {
+      content: "";
+      display: table;
+      clear: both;
+    }
+
+    .line {
+        fill: none;
+        stroke: steelblue;
+        stroke-width: 2;
+    }
+
+    .overlay {
+        fill: none;
+        pointer-events: all;
+    }
+
+    .linetooltip {
+        position: absolute;
+        opacity: 0;
+        background-color: white;
+        border: 1px solid black;
+        padding: 5px;
+    }
+
+    .slider {
+      -webkit-appearance: none;
+      width: 80%;
+      height: 15px;
+      border-radius: 5px;  
+      background: linear-gradient(to right, #fc8363, #660000);
+      outline: none;
+      opacity: 0.7;
+      -webkit-transition: .2s;
+      transition: opacity .2s;
+    }
+
+    .slider:hover {
+      opacity: 1;
+    }
+
+    .slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 25px;
+      height: 25px;
+      border-radius: 50%; 
+      background: linear-gradient(to right, #fc8363, #660000);
+      cursor: pointer;
+    }
+
+    .slider::-moz-range-thumb {
+      width: 25px;
+      height: 25px;
+      border-radius: 50%;
+      background: #04AA6D;
+      cursor: pointer;
+    }
+
+    .button {
+      background-color: #507963;
+      border: none;
+      color: white;
+      padding: 15px 8px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .button:hover {
+        opacity: 0.5;
+    }
+    </style>
+    <script type="text/javascript" src="https://d3js.org/d3.v7.min.js"></script>
+</head>
+
+<body>
+    <div class="row">
+        <p style="text-align: center; font-size: 20px;"><b>Exploring the Impact of Global Warming</b></p>
+        <p style="text-align: center; font-size: 20px;"><a href="https://docs.google.com/document/d/15lgRCGeDSbjUzXcRS-Z02ahD_uq1H0eHLcPtmEoh67o/edit#heading=h.ybq7gpaey80l">Documentation & Report</a></p>
+    </div>
+<div style="position: fixed;">
+    <div id="slider-container">
+        <label for="yearSlider"><b>Select Year:</b></label>
+        <input type="range" class="slider" id="yearSlider" min="1961" max="2022" step="1" value="1961">
+        <span id="selectedYear"><b>1961</b></span>
+    </div>
+</div>
+<div class="row">
+    <div class="column">
+        <div id="visualization-container-1">
+            <div id="slider-container">
+            <!--     <label for="yearSlider"><b>Select Year:</b></label>
+                <input type="range" class="slider" id="yearSlider" min="1961" max="2022" step="1" value="1961">
+                <span id="selectedYear"><b>1961</b></span> -->
+            <p style="text-align: center"><b>Global Surface Temperature</b></p>
+            </div>
+            <svg id="visualization1" width="80%"></svg>
+        </div>
+    </div>
+    <div class="column">
+        <div id="visualization-container-2">
+            <p style="text-align: center"><b>Global Greenhouse Gas Emissions</b></p>
+            <svg id="visualization2" width="100%" height="450px"></svg>
+            <div id="buttonGroup" style="padding-top: 10px;">
+                <button class='button' id='gg'>Total Greenhouse Gases</button>
+                <button class='button' id='cd'>Carbon Dioxide</button>
+                <button class='button' id='no'>Nitrous Oxide</button>
+                <button class='button' id='m'>Methane</button>
+                <button class='button' id='fg'>Fluorinated Gases</button>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="column">
+        <div id="visualization-container-3">
+            <p style="text-align: center"><b>Occurance Of Natural Disasters</b></p>
+            <svg id="visualization3" width="100%" height="50%"></svg>
+            <div id='my_dataviz'></div>
+            <div class="linetooltip"></div>
+        </div>
+    </div>
+    <div class="column">
+        <div id="visualization-container-4">
+            <p style="text-align: center"><b>Global Economic Loss Due To Natural Disasters</b></p>
+            <svg id="visualization4" width="100%" height="100%"></svg>
+        </div>
+    </div>
+</div>
+<div class="row">
+    <div class="column">
+        <div id="visualization-container-5">
+            <p style="text-align: center"><b>Global Mean Sea Level Rise</b></p>
+            <svg id="visualization5" width="100%" height="100%"></svg>
+            <div class="linetooltip"></div>
+        </div>    
+    </div>
+    <div class="column">
+        <div id="visualization-container-6">
+            <p style="text-align: center"><b>Surface Temperature - USA - 2022</b></p>
+            <svg id="visualization6" width="100%" height="50%"></svg>
+            <div class="linetooltip"></div>
+        </div>    
+    </div>
+</div>
+
+<script>
+    var slider = document.getElementById("yearSlider");
+    
+    slider.addEventListener("input", handleSliderChange);
+    function handleSliderChange() {
+        var selectedYearLabel = d3.select("#selectedYear");
+        var selectedYear = slider.value;
+        document.getElementById("selectedYear").textContent = selectedYear;
+        
+        plotViz3(selectedYear);
+        plotViz4(selectedYear);
+        plotViz5(selectedYear);    
+    }
+    plotViz1();
+    plotViz2();
+    plotViz3(2022);
+    plotViz4(2020);
+    plotViz5(2020);
+    plotViz6();
+
+    function plotViz1()
+    {
+        var svg1 = d3.select("#visualization-container-1").select("svg")
+            .attr("width", "100%")
+            .attr("viewBox", "0 0 500 500");
+
+        var width = +svg1.attr("width"),
+          height = +svg1.attr("height");
+          var slider = d3.select("#yearSlider");
+          var selectedYearLabel = d3.select("#selectedYear");
+
+        // Map and projection
+        var path = d3.geoPath();
+        var projection = d3.geoMercator()
+          .scale(80)
+          .translate([250, 250]);
+
+        // Data and color scale
+        var data = new Map();
+        var colorScale = d3.scaleLinear()
+          .range(d3.schemeReds[6]);
+
+        // Tooltip
+        var tooltip = d3.select("body")
+          .append("div")
+          .attr("class", "linetooltip");
+
+        var columns = [];
+        var currentColumnIndex = 0;
+
+        Promise.all([
+          d3.json("./json/world.geojson"),
+          d3.csv("./data/dataSurTemp.csv", function (d) {
+            // Extract column names and store them in the array
+            if (columns.length === 0) {
+              columns = Object.keys(d);
+              // Remove the 'code' and 'name' columns
+              columns = columns.filter(col => col !== 'code' && col !== 'name');
+            }
+            for (const key in d) {
+              if (key !== 'code' && key !== 'name') {
+                d[key] = +d[key];
+              }
+            }
+            return d;
+          })
+        ]).then(([topo]) => {
+          slider.on("input", function () {
+            var selectedYear = this.value;
+            var sy = selectedYear;
+            selectedYearLabel.text(selectedYear);
+            updateMap(topo, selectedYear);
+          });
+          //Initize map
+          updateMap(topo, "1961");
+
+        function updateMap(topo, selectedYear) {
+            d3.csv("./data/dataSurTemp.csv", function (d) {
+                data.set(d.code, +d[selectedYear]);
+            }).then(() => {
+                updateMapVisualization(topo);
+                d3.select("#columnLabel").text(selectedYear);
+            });
+          }
+        });
+
+
+        function updateMapVisualization(topo) {
+            /** Set the domain of the color scale based on the data
+            *   Use the minimum and maximum value for the data across the years. 
+            **/
+            var min = -2.062;
+            var max = 0.25;
+            var mid = (min + max) / 2;
+
+            colorScale.domain([min, ((min+mid)/2), mid, ((max+mid)/2), max]);
+
+            let mouseOver = function (event, d) {
+            d3.selectAll(".Country")
+              .transition()
+              .duration(200)
+              .style("opacity", .5);
+            d3.select(this)
+              .transition()
+              .duration(200)
+              .style("opacity", 1)
+              .style("stroke", "black");
+
+            // Access the 'value' (total) from the feature's properties
+            let value = data.get(d.id) || 0;
+
+            tooltip.html(d.id + ": " + value)
+              .style("left", (event.pageX + 10) + "px")
+              .style("top", (event.pageY - 15) + "px")
+              .style("visibility", "visible")
+              .style("opacity", 1);
+            };
+
+            let mouseLeave = function (event, d) {
+            d3.selectAll(".Country")
+              .transition()
+              .duration(200)
+              .style("opacity", .8);
+            d3.select(this)
+              .transition()
+              .duration(200)
+              .style("stroke", "transparent");
+
+            // Hide the tooltip on mouseleave
+            tooltip.style("visibility", "hidden");
+            };
+
+            // Draw the map
+            svg1.selectAll("path")
+            .data(topo.features)
+            .join("path")
+            .attr("d", path.projection(projection))
+            // set the color of each country
+            .attr("fill", function (d) {
+              d.total = data.get(d.id) || 0;
+              return colorScale(d.total);
+            })
+            .style("stroke", "transparent")
+            .attr("class", "Country")
+            .style("opacity", .8)
+            .on("mouseover", mouseOver)
+            .on("mouseleave", mouseLeave)
+            .on("click", function(d) {
+              var countryName = d.srcElement.__data__.properties;
+              //Open country viz for state wise data view
+            });
+
+            d3.select("#columnLabel")
+            .style("margin-top", "10px")
+            .text(columns[currentColumnIndex]);
+        }
+
+        var zoom = d3.zoom()
+            .scaleExtent([0.5, 8])
+            .on("zoom", zoomed);
+
+        svg1.call(zoom);
+
+        function zoomed(event) {
+            svg1.selectAll("path")
+                .attr("transform", event.transform);
+        }
+    }
+
+    function plotViz2()
+    {
+        var btngg = document.getElementById("gg");
+        btngg.addEventListener("click", plotLollipop("GG"));
+        var btncd = document.getElementById("cd");
+        btncd.addEventListener("click", plotLollipop("CD"));
+        var btnno = document.getElementById("no");
+        btnno.addEventListener("click", plotLollipop("NO"));
+        var btnm = document.getElementById("m");
+        btnm.addEventListener("click", plotLollipop("M"));
+        var btnfg = document.getElementById("fg");
+        btnfg.addEventListener("click", plotLollipop("FG"));
+        
+        function plotLollipop(parameter) {
+            return function() {
+                var buttons = document.querySelectorAll('.button');
+                buttons.forEach(function(button) {
+                    button.style.backgroundColor = '#507963';
+                  });
+                var clickedButton = document.getElementById(parameter.toLowerCase());
+                clickedButton.style.backgroundColor = "darkgreen"; 
+                clickButton(parameter);
+            };
+        }
+        // Visualization 2
+        var margin = {top: 10, right: 20, bottom: 40, left: 70},
+            width = 600 - margin.left - margin.right,
+            height = 450 - margin.top - margin.bottom;
+
+        // append the svg object to the body of the page
+        var svg3 = d3.select("#visualization-container-2").select("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+        // Initialize the X axis
+        var x = d3.scaleBand()
+            .range([0, width])
+            .padding(1);
+        var xAxis = svg3.append("g")
+            .attr("transform", `translate(0, ${height})`)
+
+        // Initialize the Y axis
+        var y = d3.scaleLinear([0, 100])
+            .range([height, 0]);
+        var yAxis = svg3.append("g")
+            .attr("class", "myYaxis")
+
+        var arrTotal = [];
+        var arrCD = [];
+        var arrNO = [];
+        var arrM = [];
+        var arrFG = [];
+
+        function clickButton(gas) {
+            if (gas == 'GG') {
+                update(arrTotal, 'teal')
+            } else if (gas == 'CD') {
+                update(arrCD, 'grey')
+            } else if (gas == 'NO') {
+                update(arrNO, 'blue')
+            } else if (gas == 'M') {
+                update(arrM, 'red')
+            } else if (gas == 'FG') {
+                update(arrFG, 'purple')
+            }
+        }
+
+        // Add Y axis label:
+        svg3.append("text")
+            .attr("text-anchor", "end")
+            .attr("x", -350)
+            .attr("y", -50)
+            .text("Millions of metric tons of CO2 equivalent")
+            .attr("text-anchor", "start")
+            .attr("transform", "rotate(-90)");
+
+        // A function that create / update the plot for a given variable:
+        var update = function(arr, color) {
+            // Parse the Data
+            d3.csv("./data/Annual_Greenhouse_Gas_(GHG)_Air_Emissions_Accounts.csv").then(function (data) {
+                arrTotal = generateArr('Greenhouse gas');
+                arrCD = generateArr('Carbon dioxide');
+                arrNO = generateArr('Nitrous oxide');
+                arrM = generateArr('Methane');
+                arrFG = generateArr('Fluorinated gases');
+
+                function generateArr(gasType) {
+                    var arrName = [];
+                    for (let i = 0; i < data.length; i++) {
+                        if (data[i].Gas_Type == gasType && data[i].Country == 'World'
+                            && data[i].Industry == 'Total Industry and Households') {
+                            for (var yearCounter=2010;yearCounter<=2022;yearCounter++) {
+                                var columnName = 'F'+yearCounter;
+                                arrName.push({ country: data[i].Country, gas: data[i].Gas_Type, year: yearCounter, val: data[i][columnName]});
+                            }
+                        }
+                    }
+                    return arrName;
+                }
+                if (color == 'teal') {
+                    arr = arrTotal;
+                } else if (color == 'grey') {
+                    arr = arrCD;
+                } else if (color == 'blue') {
+                    arr = arrNO;
+                } else if (color == 'red') {
+                    arr = arrM;
+                } else if (color == 'purple') {
+                    arr = arrFG;
+                }
+
+                // X axis
+                x.domain(arr.map(function (d) { return d.year; }))
+                xAxis.transition().duration(1000).call(d3.axisBottom(x))
+                    .selectAll("text")
+                    .style("text-anchor", "end")
+                    .attr("dx", "-.8em")
+                    .attr("dy", ".15em")
+                    .attr("transform", "rotate(-65)")
+                    .style("font-weight", "bold");
+
+                // Add Y axis
+                y.domain([0, d3.max(arr, function (d) { return +d.val })]);
+                yAxis.transition()
+                    .duration(1000)
+                    .call(d3.axisLeft(y))
+                    .style("font-weight", "bold");
+
+                // variable j: create line
+                var j = svg3.selectAll(".myLine")
+                    .data(arr)
+                // update lines
+                j
+                    .join("line")
+                    .attr("class", "myLine")
+                    .transition()
+                    .duration(1000)
+                    .attr("x1", function (d) { return x(d.year); })
+                    .attr("x2", function (d) { return x(d.year); })
+                    .attr("y1", y(0))
+                    .attr("y2", function (d) { return y(d.val); })
+                    .attr("stroke", "black")
+                    .attr("stroke-width", "2");
+
+                // variable u: create circles
+                var u = svg3.selectAll("circle")
+                    .data(arr)
+                // update bars
+                u
+                    .join("circle")
+                    .transition()
+                    .duration(1000)
+                    .attr("cx", function (d) { return x(d.year); })
+                    .attr("cy", function (d) { return y(d.val); })
+                    .attr("r", 8)
+                    .attr("fill", color);
+            }
+            );
+        }
+        update(arrTotal, "teal");
+    }
+
+    function plotViz3(selectedYear)
+    {
+        // Visualization 3
+        var svg = d3.select("#visualization-container-3").select("svg");
+        var tooltip = d3.select("#visualization-container-3").select("div");
+        svg.remove();
+        tooltip.remove();
+
+        var margin = { top: 40, right: 150, bottom: 20, left: 30 },
+            width = 1500 - margin.left - margin.right,
+            height = 450 - margin.top - margin.bottom;
+
+        // append the svg object to the body of the page
+        var svg = d3.select("#visualization-container-3").append("svg")
+            .attr("width", "100%")
+            .attr("height", "50%")
+            .attr("viewBox", "0 -30 700 700")
+            .attr("preserveAspectRatio", "xMidYMid meet");
+
+        var dataArr = [];
+        var categoryArr = [];
+
+        //Read the data
+        Promise.all([d3.csv("./data/natural_disasters_by_type_cleaned.csv")]).then(function (data) {
+            for (let i = 0; i < data[0].length; i++) {
+                var year = data[0][i].year;
+                var date = new Date(year);
+                if (year <=selectedYear) {
+                    dataArr.push({ year: date, entity: data[0][i].entity, numDisaster: +data[0][i].numDisaster });
+                }
+            }
+            
+            for (let i = 0; i < dataArr.length; i++) {
+                if (dataArr[i].entity != "All disasters") {
+                    let originalText = dataArr[i].entity.trim().toUpperCase();
+
+                    let removedSpacesText =
+                        [...originalText].reduce((accum, char) =>
+                            (char === " ") ? accum : accum + char, '');
+            
+                    categoryArr.push({ year: dataArr[i].year, entity: removedSpacesText, numDisaster: dataArr[i].numDisaster });
+                }
+            }
+
+            // Add X axis
+            var x = d3.scaleTime()
+                .domain([d3.min(dataArr, d => d.year), d3.max(dataArr, d => d.year)])
+                .range([0, width / 2 - 50]);
+            svg.append("g")
+                .attr("transform", `translate(30, ${height})`)
+                .call(d3.axisBottom(x).ticks(5))
+                .style("font-weight", "bold");
+
+            // Add X axis label:
+            svg.append("text")
+                .attr("text-anchor", "end")
+                .attr("x", width / 4.2)
+                .attr("y", "420")
+                .text("Year")
+                .style("font-weight", "bold");
+
+            // Add Y axis
+            var y = d3.scaleLinear()
+                .domain([d3.min(categoryArr, d => d.numDisaster), d3.max(categoryArr, d => d.numDisaster) + 10])
+                .range([height, 0]);
+            svg.append("g")
+                .attr("transform", `translate(30, 0)`)
+                .call(d3.axisLeft(y))
+                .style("font-weight", "bold");
+
+            // Add Y axis label:
+            svg.append("text")
+                .attr("text-anchor", "end")
+                .attr("x", 0)
+                .attr("y", -15)
+                .text("No. of Natural Disasters")
+                .attr("text-anchor", "start")
+                .style("font-weight", "bold");
+
+            // Add a scale for bubble size
+            var z = d3.scaleSqrt()
+                .domain([0, 600])
+                .range([2, 20]);
+
+            // Add a scale for bubble color
+            var myColor = d3.scaleOrdinal()
+                .domain(["Drought", "DryMassMovement", "Earthquake", "ExtremeTemperature",
+                    "ExtremeWeather", "Flood", "GlacialLakeOutburst", "Landslide",
+                    "VolcanicActivity", "Wildfire"])
+                .range(["grey", "brown", "green", "pink", "purple", "blue", "teal", "violet",
+                    "red", "orange"]);
+
+            //-------------TOOLTIP--------------
+            var ntooltip = d3.select("body")
+                .append("div")
+                .attr("class", "linetooltip");
+
+            var showTooltip = function (event, d) {
+                ntooltip.html("Year: " + (d.year.getYear() + 1900) + "<br>Type: " + d.entity + "<br># of Disasters: " + d.numDisaster)
+                    .style("left", (event.pageX-100) + "px")
+                    .style("top", (event.pageY-150) + "px")
+                    .style("display", "inline-block")
+                    .style("opacity", 1);
+            };
+
+            var moveTooltip = function (event, d) {
+                ntooltip.style("left", (event.pageX) + "px")
+                    .style("top", (event.pageY) + "px");
+            };
+
+            var hideTooltip = function (event, d) {
+                ntooltip.style("display", "none");
+            }
+
+            //---------HIGHLIGHT------------
+            // When hovered
+            var highlight = function (event, d) {
+                // reduce opacity of all groups
+                d3.selectAll(".bubbles").style("opacity", .05)
+                // expect the one that is hovered
+                d3.selectAll("." + d.toUpperCase()).style("opacity", 1)
+            }
+
+            // When not hovered anymore
+            var noHighlight = function (event, d) {
+                d3.selectAll(".bubbles").style("opacity", 1)
+            }
+
+            //-----------PLOT POINTS------------- 
+            // Add dots
+            svg.append('g')
+                .selectAll("dot")
+                .data(categoryArr)
+                .join("circle")
+                .attr("class", function (d) { return "bubbles " + d.entity })
+                .attr("cx", d => x(d.year)+30)
+                .attr("cy", d => y(d.numDisaster))
+                .attr("r", d => z(d.numDisaster))
+                .style("fill", d => myColor(d.entity))
+                .style("stroke", "black")
+                // -3- Trigger the functions for hover
+                .on("mouseover", showTooltip)
+                .on("mousemove", moveTooltip)
+                .on("mouseleave", hideTooltip)
+
+            //-----------LEGEND---------------
+            // Add one dot in the legend for each name.
+            var legend = svg.append("g")
+                .attr("transform", "translate(0," + (height + 20) + ")");
+            var size = 20
+            var allgroups = ["Drought", "DryMassMovement", "Earthquake", "ExtremeTemperature",
+                "ExtremeWeather", "Wildfire", "Flood", "Landslide",
+                "VolcanicActivity", "GlacialLakeOutburst"]
+            legend.selectAll("myrect")
+                .data(allgroups.slice(0, 4))
+                .join("circle")
+                .attr("cx", (d, i) => 50 + i * (size + 130))
+                .attr("cy", 30)
+                .attr("r", 7)
+                .style("fill", d => myColor(d))
+                .on("mouseover", highlight)
+                .on("mouseleave", noHighlight)
+
+            // Add labels beside legend dots
+            legend.selectAll("mylabels")
+                .data(allgroups.slice(0, 4))
+                .enter()
+                .append("text")
+                .attr("x", (d, i) => 60 + i * (size + 130))
+                .attr("y", 30)
+                .style("fill", d => myColor(d))
+                .text(d => d)
+                .attr("text-anchor", "left")
+                .style("alignment-baseline", "middle")
+                .on("mouseover", highlight)
+                .on("mouseleave", noHighlight)
+            
+            legend.selectAll("myrect2")
+                .data(allgroups.slice(4, 8)) // Adjust the range to select items for the second line
+                .join("circle")
+                .attr("cx", (d, i) => 50 + i * (size + 130)) // Adjust the spacing between circles and position
+                .attr("cy", 60) // Adjust the y-coordinate for Line 2
+                .attr("r", 7)
+                .style("fill", d => myColor(d))
+                .on("mouseover", highlight)
+                .on("mouseleave", noHighlight);
+
+            // Add labels beside legend dots - Line 2
+            legend.selectAll("mylabels2")
+                .data(allgroups.slice(4, 8)) // Adjust the range to select items for the second line
+                .enter()
+                .append("text")
+                .attr("x", (d, i) => 60 + i * (size + 130)) // Adjust the spacing between labels and position
+                .attr("y", 60) // Adjust the y-coordinate for Line 2
+                .style("fill", d => myColor(d))
+                .text(d => d)
+                .attr("text-anchor", "left")
+                .style("alignment-baseline", "middle")
+                .on("mouseover", highlight)
+                .on("mouseleave", noHighlight);
+
+            // Add circles to the legend - Line 3
+            legend.selectAll("myrect3")
+                .data(allgroups.slice(8)) // Adjust the range to select items for the third line
+                .join("circle")
+                .attr("cx", (d, i) => 50 + i * (size + 130)) // Adjust the spacing between circles and position
+                .attr("cy", 90) // Adjust the y-coordinate for Line 3
+                .attr("r", 7)
+                .style("fill", d => myColor(d))
+                .on("mouseover", highlight)
+                .on("mouseleave", noHighlight);
+
+            // Add labels beside legend dots - Line 3
+            legend.selectAll("mylabels3")
+                .data(allgroups.slice(8)) // Adjust the range to select items for the third line
+                .enter()
+                .append("text")
+                .attr("x", (d, i) => 60 + i * (size + 130)) // Adjust the spacing between labels and position
+                .attr("y", 90) // Adjust the y-coordinate for Line 3
+                .style("fill", d => myColor(d))
+                .text(d => d)
+                .attr("text-anchor", "left")
+                .style("alignment-baseline", "middle")
+                .on("mouseover", highlight)
+                .on("mouseleave", noHighlight);
+        });
+    } 
+
+    function plotViz4(selectedYear)
+    {
+        // Visualization 4
+        var svg4 = d3.select("#visualization-container-4").select("svg");
+        var linetooltip = d3.select("#visualization-container-4").select("div");
+        svg4.remove();
+        linetooltip.remove();
+        function formatLargeNumbers(value) {
+            if (value >= 1e9) {
+                return (value / 1e9).toFixed(1) + "B";
+            } else if (value >= 1e6) {
+                return (value / 1e6).toFixed(1) + "M";
+            } else if (value >= 1e3) {
+                return (value / 1e3).toFixed(1) + "K";
+            }
+            return value.toString();
+        }
+        // Set the dimensions and margins of the graph
+        var margin = {top: 20, right: 20, bottom: 30, left: 90},
+            width = 700 - margin.left - margin.right,
+            height = 450;
+
+        var svg4 = d3.select("#visualization-container-4").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform",
+                  "translate(" + margin.left + "," + margin.top + ")");
+
+        // Load the data
+        d3.csv("./data/processed_natural-disasters.csv").then(function(data) {
+            // Parse the data
+            data.forEach(function(d) {
+                d.Year = +d.Year;
+                d.TotalEconomicDamages = +d['Total economic damages'];    
+            });
+
+            data = data.filter(function(d) {
+                return d.Year <= selectedYear;
+            });
+
+            // Add X axis
+            var x = d3.scaleLinear()
+                .domain(d3.extent(data, function(d) {return d.Year; }))
+                .range([0, width]);
+
+            var yearFormat = d3.format(".0f");
+
+            svg4.append("g")
+                .attr("transform", "translate(0," + height + ")")
+                .call(d3.axisBottom(x).tickFormat(yearFormat))
+                .style("font-weight", "bold");
+
+            // Add X axis label
+            svg4.append("text")
+                .attr("text-anchor", "end")
+                .attr("x", "300")
+                .attr("y", "480")
+                .text("Year")
+                .style("font-weight", "bold");
+
+            // Add Y axis
+            var y = d3.scaleLinear()
+                .domain([0, d3.max(data, function(d) { return d.TotalEconomicDamages; })])
+                .range([height, 0]);
+            svg4.append("g")
+                .call(d3.axisLeft(y).tickFormat(formatLargeNumbers))
+                .style("font-weight", "bold");
+
+            svg4.append("text")
+                .attr("text-anchor", "end")
+                .attr("x", -290)
+                .attr("y", -60)
+                .text("Economic Damages")
+                .attr("text-anchor", "start")
+                .attr("transform", "rotate(-90)")
+                .style("font-weight", "bold");
+
+            // Add the area
+            var area = d3.area()
+                .x(function(d) { return x(d.Year); })
+                .y0(height)
+                .y1(function(d) { return y(0); });
+
+            svg4.append("path")
+                .datum(data)
+                .attr("fill", "#69b3a2")
+                .attr("d", area)
+                .transition()
+                .duration(2000) // Animation duration in milliseconds
+                .attr("d", d3.area()
+                    .x(function(d) { return x(d.Year); })
+                    .y0(height)
+                    .y1(function(d) { return y(d.TotalEconomicDamages); })
+                );
+
+            // Create a tooltip div element
+            var linetooltip = d3.select("body")
+                .append("div")
+                .attr("class", "linetooltip");
+
+            // Add interaction to show tooltip on mouseover
+            svg4.on("mousemove", function(event, d) {
+                var x0 = x.invert(d3.pointer(event)[0]);
+                var i = bisect(data, x0, 1);
+                var selectedData = data[i];
+
+                linetooltip.transition()
+                    .style("opacity", 1);
+
+                if (selectedData) {
+                    linetooltip.html("<b>Year:</b> " + selectedData.Year + "<br><b>Economic Damages:</b> $" + formatLargeNumbers(selectedData.TotalEconomicDamages))
+                        .style("left", (event.pageX + 5) + "px")
+                        .style("top", (event.pageY - 28) + "px");
+                }
+            });
+
+            // Hide tooltip on mouseout
+            svg4.on("mouseout", function() {
+                linetooltip.transition()
+                    .duration(200)
+                    .style("opacity", 0);
+            });
+
+            // Bisect function to find the closest data point
+            var bisect = d3.bisector(function(d) { return d.Year; }).left;
+        });
+    }
+
+    function plotViz5(selectedYear)
+    {
+        var svg5 = d3.select("#visualization-container-5").select("svg");
+        var linetooltip = d3.select("#visualization-container-5").select("div");
+        svg5.remove();
+        linetooltip.remove();
+        //Viz 5
+        var margin = {top: 20, right: 20, bottom: 30, left: 50},
+            width = 700 - margin.left - margin.right,
+            height = 450;
+
+        var svg5 = d3.select("#visualization-container-5").append("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+
+        // Create a tooltip div element
+            var linetooltip = d3.select("body")
+                .append("div")
+                .attr("class", "linetooltip")
+                .style("opacity", 0);
+
+        d3.csv("./data/sea_levels_2015.csv").then(function(data) {
+            // Format the data
+            data.forEach(function(d) {
+                var time = d3.timeParse("%Y-%m-%d")(d.Time); 
+                var year = time.getFullYear();
+                if (year <= selectedYear) {
+                    d.Time = d3.timeParse("%Y-%m-%d")(d.Time);
+                    d.GMSL = +d.GMSL;       
+                }
+            });
+
+            var x = d3.scaleTime().range([0, width]);
+            var y = d3.scaleLinear().range([height, 0]);
+
+            x.domain(d3.extent(data, function(d) { return d.Time; }));
+            // Add X axis label
+            svg5.append("text")
+                .attr("text-anchor", "end")
+                .attr("x", "300")
+                .attr("y", "480")
+                .text("Year")
+                .style("font-weight", "bold");
+            y.domain([-200, d3.max(data, function(d) { return d.GMSL; })]);
+
+            var line = d3.line()
+                .x(function(d) { return x(d.Time); })
+                .y(function(d) { return y(d.GMSL); });
+
+            svg5.append("g")
+                .attr("transform", "translate(0," + height + ")")
+                .call(d3.axisBottom(x).tickFormat(d3.timeFormat("%Y")))
+                .selectAll("text")
+                .style("text-anchor", "center")
+                .style("font-weight", "bold");
+
+            svg5.append("g")
+                .call(d3.axisLeft(y))
+                .style("font-weight", "bold");
+            svg5.append("text")
+                .attr("text-anchor", "end")
+                .attr("x", -290)
+                .attr("y", -60)
+                .text("GMSL")
+                .attr("text-anchor", "start")
+                .attr("transform", "rotate(-90)")
+                .style("font-weight", "bold");
+
+            svg5.append("path")
+                .datum(data)
+                .attr("class", "line")
+                .attr("d", line);
+
+            svg5.append("rect")
+                .attr("class", "overlay")
+                .attr("width", width)
+                .attr("height", height)
+                .on("mouseover", function() { linetooltip.style("opacity", 1); })
+                .on("mouseout", function() { linetooltip.style("opacity", 0); })
+                .on("mousemove", mousemove);
+
+            function mousemove(event) {
+                var bisectDate = d3.bisector(function(d) { return d.Time; }).left;
+                var x0 = x.invert(d3.pointer(event)[0]),
+                    i = bisectDate(data, x0, 1),
+                    d0 = data[i - 1],
+                    d1 = data[i],
+                    d = x0 - d0.Time > d1.Time - x0 ? d1 : d0;
+                linetooltip.html("Date: " + d3.timeFormat("%Y-%m-%d")(d.Time) + "<br/>GMSL: " + d.GMSL)
+                       .style("left", (event.pageX + 5) + "px")
+                       .style("top", (event.pageY - 28) + "px");
+            }
+        });
+    }
+
+    function plotViz6()
+    {
+        //Viz 6
+        var margin = {top: 20, right: 20, bottom: 30, left: 50},
+            width = 600 - margin.left - margin.right,
+            height = 450 - margin.top - margin.bottom;
+
+        var svg6 = d3.select("#visualization-container-6").select("svg")
+            .attr("width", width + margin.left + margin.right)
+            .attr("height", height + margin.top + margin.bottom)
+            .append("g")
+            .attr("transform",
+                  "translate(" + margin.left + "," + margin.top + ")");
+        Promise.all([
+            d3.json("./json/us_map.json"),
+            d3.csv("./data/us_state_temp.csv"),
+            d3.csv("./data/us_capitals_data.csv"),
+        ]).then(function (files) {
+            //Map data to states
+            var tempData = {};
+            files[1].forEach(function (d) {
+                tempData[d.state] = { code: d.code, temp: +d.temp };;
+            });
+
+            //Map latitude and longitude to states
+            var capitalsData = {};
+            files[2].forEach(function (d) {
+                capitalsData[d.name] = {latitude: +d.latitude, longitude: +d.longitude, name: d.name };
+            });
+
+            //Define color scale for temp range
+            var colorScale = d3.scaleDiverging()
+                .domain(Object.values(tempData).map(d => d.temp))
+                .interpolator(d3.interpolateRdBu);
+
+            let projection = d3.geoEquirectangular();
+            projection.fitSize([width, height], files[0]);
+
+            var generator = d3.geoPath()
+                .projection(projection);
+
+            //Map temp data to GeoJSON features
+            var statesData = files[0].features;
+            for (var i = 0; i < statesData.length; i++) {
+                var state = statesData[i];
+                var stateName = state.properties.NAME;
+                var stateCode = state.properties.STATE;
+                //Data processing to map temp, latitude and longitude to states
+                if (tempData[stateName]) {
+                    state.properties.temperature = tempData[stateName].temp;
+                    state.properties.code = tempData[stateName].code;
+                } else {
+                    state.properties.temperature = 0;
+                }
+                if (capitalsData[stateName]) {
+                    state.properties.latitude = capitalsData[stateName]['latitude'];
+                    state.properties.longitude = capitalsData[stateName]['longitude'];
+                } else {
+                    state.properties.latitude = 0;
+                    state.properties.longitude = 0;
+                }
+            }
+
+            let plot = svg6.append("g");
+            //Plot the US map
+            plot.selectAll('paths')
+                .data(statesData)
+                .enter()
+                .append("path")
+                .attr("d", generator)
+                .attr("fill", function (d) {
+                    return colorScale(d.properties.temperature);
+                })
+                .attr("stroke", "black")
+                .attr("stroke-width", 0.5)
+                .append("title");
+
+            plot.selectAll("text")
+                .data(statesData)
+                .enter()
+                .append("text")
+                .attr("x", d => generator.centroid(d)[0])
+                .attr("y", d => generator.centroid(d)[1])
+                .attr("text-anchor", "middle")
+                .attr("alignment-baseline", "middle")
+                .attr("font-size", 10)
+                .attr("fill", "black")
+                .text(d => d.properties.code);
+
+        }); 
+    }     
+</script>
+
+</body>
+
+</html>
